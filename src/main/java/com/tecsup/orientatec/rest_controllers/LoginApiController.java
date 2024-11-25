@@ -7,18 +7,16 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCrypt;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/v1")
+@CrossOrigin(origins = "*")
 public class LoginApiController {
     private static final Logger logger = LoggerFactory.getLogger(LoginApiController.class);
 
@@ -26,30 +24,46 @@ public class LoginApiController {
     UserService userService;
 
     @PostMapping("/user/login")
-    public ResponseEntity authenticateUser(@RequestBody Login login) {
+    public ResponseEntity<?> authenticateUser(@RequestBody Login login) {
         try {
-            logger.info("Intentando autenticar usuario con email: " + login.getEmail());
-            List<String> userEmail = userService.checkUserEmail(login.getEmail());
+            logger.info("Intento de login - Email: {}", login.getEmail());
 
-            if (userEmail.isEmpty() || userEmail== null) {
-                logger.warn("Email no encontrado: " + login.getEmail());
-                return new ResponseEntity<>("El Email que ingresó no existe", HttpStatus.NOT_FOUND);
+            if (login.getEmail() == null || login.getContraseña() == null ||
+                    login.getEmail().isEmpty() || login.getContraseña().isEmpty()) {
+                Map<String, Object> response = new HashMap<>();
+                response.put("status", "error");
+                response.put("message", "Email y contraseña son requeridos");
+                return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
             }
 
-            String hashed_password = userService.checkUserPasswordByEmail(login.getEmail());
+            List<String> userEmail = userService.checkUserEmail(login.getEmail());
+            Map<String, Object> response = new HashMap<>();
 
-            if (!BCrypt.checkpw(login.getContraseña(), hashed_password)) {
-                logger.warn("Contraseña incorrecta para el email: " + login.getEmail());
-                return new ResponseEntity<>("El email o la Contraseña es Incorrecta", HttpStatus.BAD_REQUEST);
+            if (userEmail.isEmpty()) {
+                logger.warn("Email no encontrado: {}", login.getEmail());
+                response.put("status", "error");
+                response.put("message", "El Email que ingresó no existe");
+                return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
+            }
+
+            String hashedPassword = userService.checkUserPasswordByEmail(login.getEmail());
+
+            if (!BCrypt.checkpw(login.getContraseña(), hashedPassword)) {
+                logger.warn("Contraseña incorrecta para el email: {}", login.getEmail());
+                response.put("status", "error");
+                response.put("message", "El email o la Contraseña es Incorrecta");
+                return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
             }
 
             User user = userService.getUserDetailsByEmail(login.getEmail());
-            logger.info("Usuario autenticado correctamente: " + user.getEmail());
+            logger.info("Login exitoso - Usuario: {}", user.getEmail());
             return new ResponseEntity<>(user, HttpStatus.OK);
         } catch (Exception e) {
             logger.error("Error durante la autenticación: ", e);
-            return new ResponseEntity<>("Error: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+            Map<String, Object> response = new HashMap<>();
+            response.put("status", "error");
+            response.put("message", "Error del servidor: " + e.getMessage());
+            return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 }
-
