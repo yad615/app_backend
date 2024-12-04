@@ -67,7 +67,6 @@ public class UserApiController {
     @PostMapping("/users")
     public ResponseEntity<?> createUser(@RequestBody User user) {
         try {
-            // Validar si el email ya existe
             if (!userService.checkUserEmail(user.getEmail()).isEmpty()) {
                 Map<String, Object> response = new HashMap<>();
                 response.put("status", "error");
@@ -75,7 +74,6 @@ public class UserApiController {
                 return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
             }
 
-            // Establecer la fecha de registro
             user.setFecha_registro(new Date());
 
             int result = userService.registerNewUserServiceMethod(
@@ -171,7 +169,6 @@ public class UserApiController {
                 return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
             }
 
-            // Verificar si el email existe
             List<String> userEmails = userService.checkUserEmail(email);
             if (userEmails.isEmpty()) {
                 Map<String, Object> response = new HashMap<>();
@@ -180,7 +177,6 @@ public class UserApiController {
                 return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
             }
 
-            // Verificar la contraseña
             String storedPassword = userService.checkUserPasswordByEmail(email);
             if (!password.equals(storedPassword)) {
                 Map<String, Object> response = new HashMap<>();
@@ -189,7 +185,6 @@ public class UserApiController {
                 return new ResponseEntity<>(response, HttpStatus.UNAUTHORIZED);
             }
 
-            // Obtener detalles del usuario
             User user = userService.getUserDetailsByEmail(email);
             return new ResponseEntity<>(user, HttpStatus.OK);
         } catch (Exception e) {
