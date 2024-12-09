@@ -1,5 +1,5 @@
-package com.tecsup.orientatec.repository;
-import com.tecsup.orientatec.models.User;
+package com.tecsup.orientatec.repositories;
+import com.tecsup.orientatec.models.Usuario;
 import jakarta.transaction.Transactional;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -10,7 +10,7 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 
 @Repository
-public interface UserRepository extends CrudRepository<User, Integer> {
+public interface UserRepository extends CrudRepository<Usuario, Integer> {
 
     @Query(value ="SELECT email FROM usuarios WHERE email = :email" , nativeQuery = true)
     List<String> checkUserEmail(@Param("email") String email);
@@ -19,7 +19,7 @@ public interface UserRepository extends CrudRepository<User, Integer> {
     String checkUserPasswordByEmail(@Param("email") String email);
 
     @Query(value ="SELECT * FROM usuarios WHERE email = :email" , nativeQuery = true)
-    User GetUserDetailsByEmail(@Param("email") String email);
+    Usuario GetUserDetailsByEmail(@Param("email") String email);
 
     @Transactional
     @Modifying

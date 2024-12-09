@@ -1,6 +1,6 @@
 package com.tecsup.orientatec.rest_controllers;
 
-import com.tecsup.orientatec.models.User;
+import com.tecsup.orientatec.models.Usuario;
 import com.tecsup.orientatec.services.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -27,14 +27,14 @@ public class UserApiController {
     @GetMapping("/users")
     public ResponseEntity<?> getAllUsers() {
         try {
-            List<User> users = userService.getAllUsers();
-            if (users.isEmpty()) {
+            List<Usuario> usuarios = userService.getAllUsers();
+            if (usuarios.isEmpty()) {
                 Map<String, Object> response = new HashMap<>();
                 response.put("status", "success");
                 response.put("message", "No hay usuarios registrados");
                 return new ResponseEntity<>(response, HttpStatus.OK);
             }
-            return new ResponseEntity<>(users, HttpStatus.OK);
+            return new ResponseEntity<>(usuarios, HttpStatus.OK);
         } catch (Exception e) {
             logger.error("Error al obtener usuarios: ", e);
             Map<String, Object> response = new HashMap<>();
@@ -44,10 +44,11 @@ public class UserApiController {
         }
     }
 
+
     @GetMapping("/users/{id}")
     public ResponseEntity<?> getUserById(@PathVariable int id) {
         try {
-            Optional<User> user = userService.getUserById(id);
+            Optional<Usuario> user = userService.getUserById(id);
             if (!user.isPresent()) {
                 Map<String, Object> response = new HashMap<>();
                 response.put("status", "error");
@@ -65,21 +66,21 @@ public class UserApiController {
     }
 
     @PostMapping("/users")
-    public ResponseEntity<?> createUser(@RequestBody User user) {
+    public ResponseEntity<?> createUser(@RequestBody Usuario usuario) {
         try {
-            if (!userService.checkUserEmail(user.getEmail()).isEmpty()) {
+            if (!userService.checkUserEmail(usuario.getEmail()).isEmpty()) {
                 Map<String, Object> response = new HashMap<>();
                 response.put("status", "error");
                 response.put("message", "El email ya está registrado");
                 return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
             }
 
-            user.setFecha_registro(new Date());
+            usuario.setFecha_registro(new Date());
 
             int result = userService.registerNewUserServiceMethod(
-                    user.getNombre_completo(),
-                    user.getEmail(),
-                    user.getContraseña()
+                    usuario.getNombre_completo(),
+                    usuario.getEmail(),
+                    usuario.getContraseña()
             );
 
             if (result > 0) {
@@ -103,9 +104,9 @@ public class UserApiController {
     }
 
     @PutMapping("/users/{id}")
-    public ResponseEntity<?> updateUser(@PathVariable int id, @RequestBody User user) {
+    public ResponseEntity<?> updateUser(@PathVariable int id, @RequestBody Usuario usuario) {
         try {
-            Optional<User> existingUser = userService.getUserById(id);
+            Optional<Usuario> existingUser = userService.getUserById(id);
             if (!existingUser.isPresent()) {
                 Map<String, Object> response = new HashMap<>();
                 response.put("status", "error");
@@ -113,14 +114,14 @@ public class UserApiController {
                 return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
             }
 
-            user.setIdusuario(id);
-            user.setFecha_actualizacion(new Date());
-            User updatedUser = userService.updateUser(user);
+            usuario.setIdusuario(id);
+            usuario.setFecha_actualizacion(new Date());
+            Usuario updatedUsuario = userService.updateUser(usuario);
 
             Map<String, Object> response = new HashMap<>();
             response.put("status", "success");
             response.put("message", "Usuario actualizado exitosamente");
-            response.put("user", updatedUser);
+            response.put("user", updatedUsuario);
             return new ResponseEntity<>(response, HttpStatus.OK);
         } catch (Exception e) {
             logger.error("Error al actualizar usuario: ", e);
@@ -134,7 +135,7 @@ public class UserApiController {
     @DeleteMapping("/users/{id}")
     public ResponseEntity<?> deleteUser(@PathVariable int id) {
         try {
-            Optional<User> existingUser = userService.getUserById(id);
+            Optional<Usuario> existingUser = userService.getUserById(id);
             if (!existingUser.isPresent()) {
                 Map<String, Object> response = new HashMap<>();
                 response.put("status", "error");
@@ -185,8 +186,8 @@ public class UserApiController {
                 return new ResponseEntity<>(response, HttpStatus.UNAUTHORIZED);
             }
 
-            User user = userService.getUserDetailsByEmail(email);
-            return new ResponseEntity<>(user, HttpStatus.OK);
+            Usuario usuario = userService.getUserDetailsByEmail(email);
+            return new ResponseEntity<>(usuario, HttpStatus.OK);
         } catch (Exception e) {
             logger.error("Error en el login: ", e);
             Map<String, Object> response = new HashMap<>();

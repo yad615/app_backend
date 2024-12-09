@@ -1,7 +1,7 @@
 package com.tecsup.orientatec.services;
 
-import com.tecsup.orientatec.models.User;
-import com.tecsup.orientatec.repository.UserRepository;
+import com.tecsup.orientatec.models.Usuario;
+import com.tecsup.orientatec.repositories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -13,11 +13,11 @@ public class UserService {
     @Autowired
     UserRepository userRepository;
 
-    public List<User> getAllUsers() {
-        return (List<User>) userRepository.findAll();
+    public List<Usuario> getAllUsers() {
+        return (List<Usuario>) userRepository.findAll();
     }
 
-    public Optional<User> getUserById(int id) {
+    public Optional<Usuario> getUserById(int id) {
         return userRepository.findById(id);
     }
 
@@ -33,12 +33,12 @@ public class UserService {
         return userRepository.checkUserPasswordByEmail(email);
     }
 
-    public User getUserDetailsByEmail(String email) {
+    public Usuario getUserDetailsByEmail(String email) {
         return userRepository.GetUserDetailsByEmail(email);
     }
 
-    public User updateUser(User user) {
-        return userRepository.save(user);
+    public Usuario updateUser(Usuario usuario) {
+        return userRepository.save(usuario);
     }
 
     public void deleteUser(int id) {

@@ -4,12 +4,11 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import jakarta.persistence.Transient;
 
-import java.security.Timestamp;
 import java.util.Date;
 
 @Entity
 @Table(name = "usuarios")
-public class User {
+public class Usuario {
     @Id
     private int idusuarios;
     private String nombre_completo;

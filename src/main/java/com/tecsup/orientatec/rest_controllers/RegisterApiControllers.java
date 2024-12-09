@@ -82,7 +82,6 @@ public class RegisterApiControllers {
         }
     }
 
-    // Manejador de solicitudes OPTIONS
     @RequestMapping(value = "/user/register", method = RequestMethod.OPTIONS)
     public ResponseEntity<?> handleOptions() {
         return ResponseEntity

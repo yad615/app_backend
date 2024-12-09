@@ -56,7 +56,6 @@ public class QuestionController {
         }
     }
 
-    // Clase interna para manejar errores
     public static class ErrorResponse {
         private String error;
 
