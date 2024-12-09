@@ -108,27 +108,19 @@ public class UserApiController {
         try {
             Optional<Usuario> existingUser = userService.getUserById(id);
             if (!existingUser.isPresent()) {
-                Map<String, Object> response = new HashMap<>();
-                response.put("status", "error");
-                response.put("message", "Usuario no encontrado");
-                return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
+                return ResponseEntity.notFound().build();
             }
 
-            usuario.setIdusuario(id);
-            usuario.setFecha_actualizacion(new Date());
-            Usuario updatedUsuario = userService.updateUser(usuario);
+            Usuario userToUpdate = existingUser.get();
+            userToUpdate.setNombre_completo(usuario.getNombre_completo());
+            userToUpdate.setEmail(usuario.getEmail());
+            userToUpdate.setFecha_actualizacion(new Date());
 
-            Map<String, Object> response = new HashMap<>();
-            response.put("status", "success");
-            response.put("message", "Usuario actualizado exitosamente");
-            response.put("user", updatedUsuario);
-            return new ResponseEntity<>(response, HttpStatus.OK);
+            Usuario updatedUser = userService.updateUser(userToUpdate);
+
+            return ResponseEntity.ok(updatedUser);
         } catch (Exception e) {
-            logger.error("Error al actualizar usuario: ", e);
-            Map<String, Object> response = new HashMap<>();
-            response.put("status", "error");
-            response.put("message", "Error al actualizar usuario: " + e.getMessage());
-            return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
         }
     }
 

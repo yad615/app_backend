@@ -1,19 +1,20 @@
 package com.tecsup.orientatec.services;
 
+import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
-import java.util.Map;
 
 @Service
 public class CustomChatgptService {
-
     private final RestTemplate restTemplate;
+    private final Gson gson;
 
     @Value("${openai.api.key}")
     private String apiKey;
@@ -22,45 +23,66 @@ public class CustomChatgptService {
     private String apiUrl;
 
     @Value("${openai.api.model}")
-    private String model;
+    private String apiModel;
 
-    public CustomChatgptService(RestTemplate restTemplate) {
+    public CustomChatgptService(RestTemplate restTemplate, Gson gson) {
         this.restTemplate = restTemplate;
+        this.gson = gson;
     }
 
     public String sendMessage(String message) {
+        String systemMessage = "Soy un asistente de Orientatec, una aplicación desarrollada por:" +
+                "\n- Yadhira Alcantara R." +
+                "\n- Patrick Chavez J." +
+                "\nEstudiantes de TECSUP, 4to ciclo." +
+                "\n\nMisión:" +
+                "\n1. Guiar en elección vocacional" +
+                "\n2. Informar sobre TECSUP" +
+                "\n3. Orientar en carreras y becas" +
+                "\n4. Acompañar en test vocacional" +
+                "\n5. Preparar con pre-simulacros" +
+                "\n\nEnfoque: Profesional, empático y preciso.";
+
         HttpHeaders headers = new HttpHeaders();
-        headers.set("Authorization", "Bearer " + apiKey);
-        headers.set("Content-Type", "application/json");
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.setBearerAuth(apiKey);
 
-        String systemMessage = "Eres un modelo de inteligencia artificial avanzado que responde con precisión y formato adecuado según el contexto de la consulta del usuario. Si se solicita código, incluye etiquetas completas y explica claramente su uso.";
+        JsonObject requestBody = new JsonObject();
+        requestBody.addProperty("model", apiModel);
+        requestBody.add("messages", gson.toJsonTree(new Object[]{
+                new Message("system", systemMessage),
+                new Message("user", message)
+        }));
 
-        String body = "{ \"model\": \"" + model + "\", " +
-                "\"messages\": [" +
-                "{ \"role\": \"system\", \"content\": \"" + systemMessage + "\" }, " +
-                "{ \"role\": \"user\", \"content\": \"" + message + "\" }" +
-                "] }";
-
-        HttpEntity<String> request = new HttpEntity<>(body, headers);
+        HttpEntity<String> request = new HttpEntity<>(requestBody.toString(), headers);
 
         try {
-            ResponseEntity<String> response = restTemplate.postForEntity(apiUrl, request, String.class);
+            String responseBody = restTemplate.postForObject(apiUrl, request, String.class);
+            return extractResponseContent(responseBody);
+        } catch (Exception e) {
+            return "Error: " + e.getMessage();
+        }
+    }
 
-            JsonObject responseNode = JsonParser.parseString(response.getBody()).getAsJsonObject();
-            String chatgptResponse = responseNode.getAsJsonArray("choices")
+    private String extractResponseContent(String responseBody) {
+        try {
+            JsonObject response = JsonParser.parseString(responseBody).getAsJsonObject();
+            return response.getAsJsonArray("choices")
                     .get(0).getAsJsonObject()
                     .getAsJsonObject("message")
                     .get("content").getAsString();
-
-            if (chatgptResponse.isEmpty()) {
-                chatgptResponse = "No se obtuvo respuesta válida de GPT-4.";
-            }
-
-            return chatgptResponse;
-
         } catch (Exception e) {
-            e.printStackTrace();
-            return "Error al procesar la solicitud: " + e.getMessage();
+            return "Procesamiento de respuesta fallido";
+        }
+    }
+
+    private static class Message {
+        String role;
+        String content;
+
+        Message(String role, String content) {
+            this.role = role;
+            this.content = content;
         }
     }
 }

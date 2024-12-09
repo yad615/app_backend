@@ -12,34 +12,6 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class QuestionController {
 
-    private final CustomChatgptService customChatgptService;
-
-    @GetMapping("/send")
-    public ResponseEntity<?> send(@RequestParam String message) {
-        try {
-            String responseMessage = customChatgptService.sendMessage(message);
-            return ResponseEntity.ok(new ChatGptResponse(responseMessage));
-        } catch (Exception e) {
-            e.printStackTrace();
-            return ResponseEntity.status(500).body(new ErrorResponse("Error al procesar la solicitud: " + e.getMessage()));
-        }
-    }
-
-    @PostMapping("/send")
-    public ResponseEntity<?> sendPost(@RequestBody Map<String, String> payload) {
-        try {
-            String message = payload.get("message");
-            if (message == null || message.isEmpty()) {
-                return ResponseEntity.badRequest().body(new ErrorResponse("El mensaje está vacío"));
-            }
-            String responseMessage = customChatgptService.sendMessage(message);
-            return ResponseEntity.ok(new ChatGptResponse(responseMessage));
-        } catch (Exception e) {
-            e.printStackTrace();
-            return ResponseEntity.status(500).body(new ErrorResponse("Error al procesar la solicitud: " + e.getMessage()));
-        }
-    }
-
     public static class ChatGptResponse {
         private String response;
 
@@ -69,6 +41,34 @@ public class QuestionController {
 
         public void setError(String error) {
             this.error = error;
+        }
+    }
+
+    private final CustomChatgptService customChatgptService;
+
+    @GetMapping("/send")
+    public ResponseEntity<?> send(@RequestParam String message) {
+        try {
+            String responseMessage = customChatgptService.sendMessage(message);
+            return ResponseEntity.ok(new ChatGptResponse(responseMessage));
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(500).body(new ErrorResponse("Error al procesar la solicitud: " + e.getMessage()));
+        }
+    }
+
+    @PostMapping("/send")
+    public ResponseEntity<?> sendPost(@RequestBody Map<String, String> payload) {
+        try {
+            String message = payload.get("message");
+            if (message == null || message.isEmpty()) {
+                return ResponseEntity.badRequest().body(new ErrorResponse("El mensaje está vacío"));
+            }
+            String responseMessage = customChatgptService.sendMessage(message);
+            return ResponseEntity.ok(new ChatGptResponse(responseMessage));
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(500).body(new ErrorResponse("Error al procesar la solicitud: " + e.getMessage()));
         }
     }
 }
